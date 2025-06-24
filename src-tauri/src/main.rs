@@ -6,6 +6,7 @@ mod valorant;
 mod commands;
 mod switcher; // アカウントスイッチャーの魂
 
+// このrustは俺(T4ko0522)書いてないからこのコメントアウトは全部なつみかんがやったやつだよなめんな４ね
 fn main() {
     // コンソールにログ出すやつ。デバッグにいいゾ～これ
     tracing_subscriber::fmt::init();
