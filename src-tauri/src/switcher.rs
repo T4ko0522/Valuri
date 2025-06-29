@@ -15,7 +15,8 @@ const TARGET_PATHS: &[&str] = &[
     "Data/RiotGamesPrivateSettings.yaml",
     "Sessions",
 ];
-const LAST_ACCOUNT_FILE: &str = "last_switched_account.txt";
+// 修正：ファイル名を .log に変更
+const LAST_ACCOUNT_FILE: &str = "last_switched_account.log";
 
 // --- ヘルパー関数 ---
 
@@ -71,7 +72,7 @@ pub fn get_saved_accounts(app: AppHandle) -> Result<Vec<String>, String> {
 
 #[tauri::command]
 pub fn save_current_account(app: AppHandle, name: String) -> Result<(), String> {
-    let riot_root = get_riot_client_root_path().ok_or("Riot Client File Not Found".to_string())?;
+    let riot_root = get_riot_client_root_path().ok_or("Riot Client s folder not found".to_string())?;
     let switcher_path = get_switcher_data_path(&app).map_err(to_string_error)?;
     let account_folder = switcher_path.join(&name);
     fs::create_dir_all(&account_folder).map_err(to_string_error)?;
@@ -93,7 +94,7 @@ pub fn save_current_account(app: AppHandle, name: String) -> Result<(), String> 
         }
     }
 
-    // ★追加: 保存が成功したら、このアカウントを「最後に使用したアカウント」として記録
+    // 保存が成功したら、このアカウントを「最後に使用したアカウント」として記録
     let last_account_file_path = switcher_path.join(LAST_ACCOUNT_FILE);
     fs::write(last_account_file_path, &name).map_err(to_string_error)?;
 
@@ -102,23 +103,22 @@ pub fn save_current_account(app: AppHandle, name: String) -> Result<(), String> 
 
 #[tauri::command]
 pub fn switch_account(app: AppHandle, name: String) -> Result<(), String> {
-    let riot_root = get_riot_client_root_path().ok_or("Riot Client File Not Found".to_string())?;
+    let riot_root = get_riot_client_root_path().ok_or("Riot Clientのフォルダが見つからない！".to_string())?;
     let switcher_path = get_switcher_data_path(&app).map_err(to_string_error)?;
     let account_folder = switcher_path.join(&name);
     let last_account_file_path = switcher_path.join(LAST_ACCOUNT_FILE);
 
     if !account_folder.exists() {
-        return Err(format!("'{}' s setting file not found", name));
+        return Err(format!("'{}' s settings folder not found", name));
     }
 
-    // ★追加: 切り替え前に現在のアカウント情報を保存する
+    // 切り替え前に現在のアカウント情報を保存する
     if last_account_file_path.exists() {
         if let Ok(last_account_name) = fs::read_to_string(&last_account_file_path) {
             if !last_account_name.is_empty() && last_account_name != name {
                  // 現在のアカウント（最後に使ったアカウント）のデータを保存する
                  // ここでは save_current_account と同じロジックを実行
                 println!("Saving current account state for: {}", last_account_name);
-                let last_account_folder = switcher_path.join(&last_account_name);
                 // エラーが発生しても切り替え処理は続行するが、コンソールに警告を出す
                 if let Err(e) = save_current_account(app.clone(), last_account_name.clone()) {
                      eprintln!("Warning: Failed to save state for '{}': {}", last_account_name, e);
@@ -160,7 +160,7 @@ pub fn switch_account(app: AppHandle, name: String) -> Result<(), String> {
     }
     // --- ここまで元の復元処理 ---
 
-    // ★追加: 切り替えが成功したら、新しいアカウントを「最後に使用したアカウント」として記録
+    // 切り替えが成功したら、新しいアカウントを「最後に使用したアカウント」として記録
     fs::write(last_account_file_path, &name).map_err(to_string_error)?;
 
     Ok(())
@@ -176,10 +176,11 @@ pub fn delete_account(app: AppHandle, name: String) -> Result<(), String> {
         fs::remove_dir_all(account_folder).map_err(to_string_error)?;
         Ok(())
     } else {
-        Err(format!("'{}' is not found", name))
+        Err(format!("'{}' data not found or is not a folder", name))
     }
 }
 
+// restart_riot_client と launch_for_add_account は変更なし
 #[tauri::command]
 pub fn restart_riot_client() -> Result<(), String> {
     for process_name in RIOT_PROCESS_NAMES.iter() {
