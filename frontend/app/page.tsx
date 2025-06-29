@@ -16,27 +16,28 @@ export default function DesktopUtilities() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const router = useRouter()
 
-  useEffect(() => {
-    const checkInitial = async () => {
-      try {
-        const isRunning = await invoke<boolean>("check_riot_status")
-        if (!isRunning) {
-          router.replace("/unauthorized")
-        }
-      } catch {
-        router.replace("/unauthorized")
-      }
-    }
-    checkInitial()
+  // useEffect(() => {
+  //   const checkInitial = async () => {
+  //     try {
+  //       const isRunning = await invoke<boolean>("check_riot_status")
+  //       if (!isRunning) {
+  //         router.replace("/unauthorized")
+  //       }
+  //     } catch {
+  //       router.replace("/unauthorized")
+  //     }
+  //   }
+    
+  //   checkInitial()
 
-    const unlisten = listen("riot_client_closed", () => {
-      router.replace("/unauthorized")
-    })
+  //   const unlisten = listen("riot_client_closed", () => {
+  //     router.replace("/unauthorized")
+  //   })
 
-    return () => {
-      unlisten.then((fn) => fn())
-    }
-  }, [router])
+  //   return () => {
+  //     unlisten.then((fn) => fn())
+  //   }
+  // }, [router])
 
   return (
     <div className="flex h-screen bg-gray-900 text-white overflow-hidden">
